@@ -40,7 +40,21 @@ class CategoryViewController: UITableViewController {
     // MARK: - Tableview delegates
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "ShowItemSegue", sender: self)
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    // MARK: - Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "ShowItemSegue" {
+            let destinationVC = segue.destination as! TodoViewController
+            
+            if let indexPath = tableView.indexPathForSelectedRow {
+                print("categoryArray")
+                destinationVC.selectedCategory = categoryArray[indexPath.row]
+            }
+        }
     }
     
     // MARK: - Data Manipulation
