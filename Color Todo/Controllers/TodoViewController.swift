@@ -9,12 +9,13 @@
 import UIKit
 import CoreData
 
-class TodoViewController: UITableViewController {
+class TodoViewController: UITableViewController, UISearchBarDelegate {
     
-    var itemArray = [Item]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    // Current app instance singleton
+    var itemArray = [Item]()    // Current app instance singleton
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+
 
 
     override func viewDidLoad() {
@@ -54,6 +55,34 @@ class TodoViewController: UITableViewController {
         
         saveItems()
     }
+    
+    // MARK: - Searchbar delegates
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadItems(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // If searchbar is nil, then the searchbar isEmpty
+        // Using isEmpty instead of == 0 because it's more performant
+        if searchBar.text?.isEmpty ?? true {
+            // Reload all items
+            loadItems()
+            
+            // Remover cursor and keyboard
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+
+            }
+        }
+    }
+    
+    // MARK: - Actions
 
     @IBAction func addButtonPressed(_ sender: Any) {
         
@@ -85,6 +114,8 @@ class TodoViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    // MARK: - Helper Methods
+    
     private func saveItems() {
 //        let encoder = PropertyListEncoder()
         do {
@@ -96,13 +127,14 @@ class TodoViewController: UITableViewController {
         }
     }
     
-    private func loadItems() {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
+    private func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+        
         do {
             itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data from context \(error)")
         }
+        tableView.reloadData()
     }
 }
 
