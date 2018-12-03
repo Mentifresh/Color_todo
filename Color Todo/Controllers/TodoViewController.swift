@@ -19,12 +19,11 @@ class TodoViewController: UITableViewController, UISearchBarDelegate {
     }
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        print(dataFilePath!)
+        tableView.rowHeight = 60.0
     }
 
     // MARK: - Tableview datasource
@@ -55,6 +54,24 @@ class TodoViewController: UITableViewController, UISearchBarDelegate {
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveItems()
+    }
+    
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            
+            // Delete from DB
+            context.delete(itemArray[indexPath.row])
+            
+            // Delete from current array
+            itemArray.remove(at: indexPath.row)
+            
+            // Remove from tableview
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
     }
     
     // MARK: - Searchbar delegates

@@ -13,11 +13,18 @@ class CategoryViewController: UITableViewController {
     
     var categoryArray = [Category]()
     
+    // File path
+    let dataFolderPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+    
     // Current app instance singleton
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print(dataFolderPath!)
+        
+        tableView.rowHeight = 60.0
         
         loadCategories()
     }
@@ -25,7 +32,6 @@ class CategoryViewController: UITableViewController {
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
         return categoryArray.count
     }
     
@@ -44,6 +50,24 @@ class CategoryViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            
+            // Delete from DB
+            context.delete(categoryArray[indexPath.row])
+            
+            // Delete from current array
+            categoryArray.remove(at: indexPath.row)
+            
+            // Remove from tableview
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+    }
+    
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -51,7 +75,6 @@ class CategoryViewController: UITableViewController {
             let destinationVC = segue.destination as! TodoViewController
             
             if let indexPath = tableView.indexPathForSelectedRow {
-                print("categoryArray")
                 destinationVC.selectedCategory = categoryArray[indexPath.row]
             }
         }
